@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt‑BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial‑scale=1.0">
+  <title>Ficha de RPG</title>
+  <style>
+    body { font-family: sans-serif; margin:0; padding:0; background:#f0f2f5; }
+    header { background:#4a90e2; color:#fff; padding:1rem; text-align:center; font-size:1.5rem; }
+    main { max-width:400px; margin:auto; padding:1rem; }
+    button { padding:0.6rem 1rem; margin:0.3rem 0; cursor:pointer; border:none; border-radius:6px; font-size:1rem; }
+    input, select, textarea { width:100%; padding:0.5rem; margin:0.3rem 0; border-radius:6px; border:1px solid #ccc; font-size:1rem; }
+    .ficha { background:#fff; padding:0.8rem; margin:0.5rem 0; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .ficha button { margin-top:5px; margin-right:5px; background:#4a90e2; color:#fff; font-size:0.9rem; }
+    .apagar { background:#e74c3c !important; }
+    #formDiv { background:#fff; padding:1rem; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.2); margin-top:1rem; }
+  </style>
+</head>
+<body>
+
+<header>Ficha de RPG</header>
+
+<main>
+  <button onclick="showForm()">+ Nova Ficha</button>
+
+  <div id="formDiv" style="display:none;">
+    <h3 id="formTitle">Nova Ficha</h3>
+    <input type="text" id="nome" placeholder="Nome">
+    <select id="sistema">
+      <option value="Noclasys">Noclasys</option>
+      <option value="Chacal Licantropia">Chacal Licantropia</option>
+      <option value="Personalizado">Personalizado</option>
+    </select>
+    <input type="number" id="forca" placeholder="Força">
+    <input type="number" id="agilidade" placeholder="Agilidade">
+    <input type="number" id="intelecto" placeholder="Intelecto">
+    <textarea id="notas" placeholder="Notas (opcional)"></textarea>
+    <button onclick="saveFicha()">Salvar</button>
+    <button onclick="hideForm()" style="background:#999;">Cancelar</button>
+  </div>
+
+  <h2>Fichas</h2>
+  <div id="listaFichas"></div>
+</main>
+
+<script>
+  let fichas = JSON.parse(localStorage.getItem('fichas')) || [];
+  let editIndex = -1;
+
+  function showForm(index = -1) {
+    document.getElementById('formDiv').style.display = 'block';
+    editIndex = index;
+    if (index >= 0) {
+      const f = fichas[index];
+      document.getElementById('formTitle').innerText = "Editar Ficha";
+      document.getElementById('nome').value = f.nome;
+      document.getElementById('sistema').value = f.sistema;
+      document.getElementById('forca').value = f.forca;
+      document.getElementById('agilidade').value = f.agilidade;
+      document.getElementById('intelecto').value = f.intelecto;
+      document.getElementById('notas').value = f.notas;
+    } else {
+      document.getElementById('formTitle').innerText = "Nova Ficha";
+      document.getElementById('nome').value = "";
+      document.getElementById('sistema').value = "Noclasys";
+      document.getElementById('forca').value = "";
+      document.getElementById('agilidade').value = "";
+      document.getElementById('intelecto').value = "";
+      document.getElementById('notas').value = "";
+    }
+  }
+
+  function hideForm() {
+    document.getElementById('formDiv').style.display = 'none';
+  }
+
+  function saveFicha() {
+    const f = {
+      nome: document.getElementById('nome').value,
+      sistema: document.getElementById('sistema').value,
+      forca: parseInt(document.getElementById('forca').value) || 0,
+      agilidade: parseInt(document.getElementById('agilidade').value) || 0,
+      intelecto: parseInt(document.getElementById('intelecto').value) || 0,
+      notas: document.getElementById('notas').value
+    };
+    if (editIndex >= 0) {
+      fichas[editIndex] = f;
+    } else {
+      fichas.push(f);
+    }
+    localStorage.setItem('fichas', JSON.stringify(fichas));
+    editIndex = -1;
+    hideForm();
+    renderFichas();
+  }
+
+  function renderFichas() {
+    const div = document.getElementById('listaFichas');
+    div.innerHTML = '';
+    fichas.forEach((f, i) => {
+      const fichaDiv = document.createElement('div');
+      fichaDiv.className = 'ficha';
+      fichaDiv.innerHTML = `<strong>${f.nome}</strong> - ${f.sistema}
+        <br>Força: ${f.forca}, Agilidade: ${f.agilidade}, Intelecto: ${f.intelecto}
+        <br>Notas: ${f.notas}
+        <br>
+        <button onclick="showForm(${i})">Editar</button>
+        <button onclick="deleteFicha(${i})" class="apagar">Apagar</button>`;
+      div.appendChild(fichaDiv);
+    });
+  }
+
+  function deleteFicha(i) {
+    if (confirm("Deseja realmente apagar esta ficha?")) {
+      fichas.splice(i, 1);
+      localStorage.setItem('fichas', JSON.stringify(fichas));
+      renderFichas();
+    }
+  }
+
+  renderFichas();
+</script>
+
+</body>
+</html>
